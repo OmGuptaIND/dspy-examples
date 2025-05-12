@@ -1,5 +1,5 @@
 # Variables
-PYTHON_RUN_SCRIPT = app/main.py
+PYTHON_RUN_SCRIPT = app.main
 VENV_DIR ?= .venv
 PYTHON_FILES = app/
 
@@ -13,7 +13,7 @@ install:
 
 run:
 	@echo ">>> Running application: $(PYTHON_RUN_SCRIPT)"
-	@uv run python $(PYTHON_RUN_SCRIPT)
+	@uv run python -m $(PYTHON_RUN_SCRIPT)
 
 ## Lint code using Ruff
 lint: 
