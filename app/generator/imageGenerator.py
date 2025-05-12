@@ -13,15 +13,32 @@ class ImageGenerator:
     The refined prompt is then used to generate a new image using the Image Model.
     """
     def __init__(self, prompt: str, max_iterations=3):
-        # Configure Gemini Model
-        lm = dspy.LM(model="gemini/gemini-2.0-flash", api_key=settings.gemini_api_key)
-        dspy.configure(lm=lm)
-
-        # Build a Predict Dspy model
-        self.dspy = dspy.Predict("desired_prompt: str, current_image: dspy.Image, current_prompt:str -> feedback:str, image_strictly_matches_desired_prompt: bool, revised_prompt: str")
+        self.dspy = self._build_dspy_model()
         self.max_iterations = max_iterations
         self.user_prompt = prompt
         self.final_prompt = prompt
+
+    def _build_dspy_model(self):
+        """
+        Build a DSPy model for image generation.
+        This model uses the Gemini model to provide feedback on the generated image.
+        It also uses the Image Model to generate images based on the user's prompt.
+        """
+        lm = dspy.LM(model="gemini/gemini-2.0-flash", api_key=settings.gemini_api_key)
+        dspy.configure(lm=lm)
+
+        class PredictImageAccuracy(dspy.Signature):
+            desired_prompt = dspy.InputField(description="The desired prompt for the image.")
+            current_image = dspy.InputField(description="The current image generated for the prompt")
+            current_prompt = dspy.InputField(description="The current prompt used to generate the image.")
+
+            feedback = dspy.OutputField(description="Feedback on the image, including whether it matches the desired prompt.")
+            image_strictly_matches_desired_prompt = dspy.OutputField(description="Whether the image strictly matches the desired prompt.")
+            revised_prompt = dspy.OutputField(description="The revised prompt based on the feedback.")
+
+        predict = dspy.Predict(PredictImageAccuracy)
+
+        return predict
 
     def _generate_image(self, prompt):
         """
