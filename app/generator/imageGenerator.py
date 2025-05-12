@@ -28,17 +28,17 @@ class ImageGenerator:
         dspy.configure(lm=lm)
 
         class PredictImageAccuracy(dspy.Signature):
-            desired_prompt = dspy.InputField(description="The desired prompt for the image.")
-            current_image = dspy.InputField(description="The current image generated for the prompt")
-            current_prompt = dspy.InputField(description="The current prompt used to generate the image.")
+            desired_prompt: str = dspy.InputField(desc="The desired prompt for the image.")
+            current_image: dspy.Image = dspy.InputField(desc="The current image generated for the prompt")
+            current_prompt: str = dspy.InputField(desc="The current prompt used to generate the image.")
 
-            feedback = dspy.OutputField(description="Feedback on the image, including whether it matches the desired prompt.")
-            image_strictly_matches_desired_prompt = dspy.OutputField(description="Whether the image strictly matches the desired prompt.")
-            revised_prompt = dspy.OutputField(description="The revised prompt based on the feedback.")
+            feedback: str = dspy.OutputField(desc="Feedback on the image, including whether it matches the desired prompt.")
+            image_strictly_matches_desired_prompt: bool = dspy.OutputField(formt= bool, desc="Whether the image strictly matches the desired prompt")
+            revised_prompt: str = dspy.OutputField(desc="The revised prompt based on the feedback.")
 
-        predict = dspy.Predict(PredictImageAccuracy)
+        response = dspy.ChainOfThought(PredictImageAccuracy, n=5)
 
-        return predict
+        return response
 
     def _generate_image(self, prompt):
         """
@@ -106,10 +106,16 @@ class ImageGenerator:
             self._display_image(image_url)
 
             if result.image_strictly_matches_desired_prompt:
+                print(f"Response, {result}")
+
                 print("Image strictly matches the desired prompt.")
                 break
 
+            print(f"Response, {result}")
+
             self.final_prompt = result.revised_prompt
+
+            print(f"Reasoning: {result.reasoning}")
             print(f"Revised prompt: {self.final_prompt}")
             print(f"Feedback: {result.feedback}")
 
