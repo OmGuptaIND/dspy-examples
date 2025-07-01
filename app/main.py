@@ -1,12 +1,25 @@
-from app.generator import ImageGenerator
+import asyncio
+import dspy
 
-def main():
-    user_prompt = input("Enter Your Prompt: ")
+from app.core.config import settings
+from app.generator.chat import ChatModule
 
+async def main():
+    lm = dspy.LM(model="gemini/gemini-2.0-flash", api_key=settings.gemini_api_key)
+    dspy.configure(lm=lm)
 
-    generator = ImageGenerator(user_prompt, 5)
+    chat = ChatModule()
 
-    generator.generate()
+    while True:
+        question = input("Ask a question (q to quit): ")
+        if question.lower() == "q":
+            print("Goodbye!")
+            break
+        
+        print(f"User: {question}")
+
+        result = chat(question=question)
+        print(f"Assistant: {result.answer}")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
